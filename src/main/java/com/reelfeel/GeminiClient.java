@@ -29,11 +29,17 @@ public class GeminiClient {
         }
     }
 
-    public List<Film> recommend(String mood) throws IOException, InterruptedException {
+    /**
+     * @param genre          sadece bu türden film istenir, null ise tür fark etmez
+     * @param excludedTitles daha önce gösterilen filmler, tekrar önerilmesin diye
+     */
+    public List<Film> recommend(String mood, String genre, List<String> excludedTitles)
+            throws IOException, InterruptedException {
+        String prompt = createPrompt(mood, genre, excludedTitles);
         HttpRequest request = HttpRequest.newBuilder(URI.create(API_URL))
                 .header("Content-Type", "application/json")
                 .header("x-goog-api-key", apiKey)
-                .POST(HttpRequest.BodyPublishers.ofString(createRequestBody(mood)))
+                .POST(HttpRequest.BodyPublishers.ofString(createRequestBody(prompt)))
                 .build();
 
         HttpResponse<String> response;
@@ -50,14 +56,23 @@ public class GeminiClient {
         return parseFilms(response.body());
     }
 
-    private String createRequestBody(String mood) {
+    static String createPrompt(String mood, String genre, List<String> excludedTitles) {
         String prompt = "Kullanıcının ruh hali: \"" + mood + "\"\n"
-                + "Bu ruh haline uygun, gerçekten var olan 5 film öner. "
-                + "Her film için orijinal adını, çıkış yılını ve neden uygun olduğunu anlatan "
+                + "Bu ruh haline uygun, gerçekten var olan 5 film öner. ";
+        if (genre != null) {
+            prompt += "Sadece " + genre + " türündeki filmlerden seç. ";
+        }
+        if (!excludedTitles.isEmpty()) {
+            prompt += "Şu filmleri tekrar önerme: " + String.join(", ", excludedTitles) + ". ";
+        }
+        prompt += "Her film için orijinal adını, çıkış yılını ve neden uygun olduğunu anlatan "
                 + "1-2 cümlelik Türkçe bir açıklama yaz. Kullanıcıya \"sen\" diye hitap et. "
                 + "Cevabı sadece şu formatta bir JSON dizisi olarak ver: "
                 + "[{\"title\": \"...\", \"year\": 2000, \"reason\": \"...\"}]";
+        return prompt;
+    }
 
+    private String createRequestBody(String prompt) {
         JsonObject part = new JsonObject();
         part.addProperty("text", prompt);
         JsonArray parts = new JsonArray();

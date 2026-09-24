@@ -49,15 +49,23 @@ public class TmdbClient {
 
     private String search(String title, int year) throws IOException, InterruptedException {
         String url = SEARCH_URL
-                + "?api_key=" + apiKey
-                + "&language=tr-TR"
+                + "?language=tr-TR"
                 + "&query=" + URLEncoder.encode(title, StandardCharsets.UTF_8);
         if (year > 0) {
             url += "&year=" + year;
         }
 
-        HttpRequest request = HttpRequest.newBuilder(URI.create(url)).GET().build();
-        HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+        // TMDB iki çeşit anahtar veriyor: uzun "API Read Access Token" (eyJ ile başlar) başlıkta,
+        // kısa "API Key" ise adreste gönderilir. Hangisi kopyalanırsa çalışsın.
+        HttpRequest.Builder request = HttpRequest.newBuilder();
+        if (apiKey.startsWith("eyJ")) {
+            request.header("Authorization", "Bearer " + apiKey);
+        } else {
+            url += "&api_key=" + apiKey;
+        }
+        request.uri(URI.create(url));
+
+        HttpResponse<String> response = httpClient.send(request.build(), HttpResponse.BodyHandlers.ofString());
         if (response.statusCode() != 200) {
             throw new IOException("TMDB hatası (kod: " + response.statusCode() + ")");
         }

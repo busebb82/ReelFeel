@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -32,6 +33,23 @@ class GeminiClientTest {
         IOException e = assertThrows(IOException.class, () -> GeminiClient.parseFilms("<html>hata</html>"));
 
         assertTrue(e.getMessage().contains("beklenmeyen"));
+    }
+
+    @Test
+    void promptContainsGenreAndExcludedFilms() {
+        String prompt = GeminiClient.createPrompt("mutluyum", "Komedi", List.of("Amélie", "Paddington 2"));
+
+        assertTrue(prompt.contains("mutluyum"));
+        assertTrue(prompt.contains("Komedi"));
+        assertTrue(prompt.contains("Amélie, Paddington 2"));
+    }
+
+    @Test
+    void promptWithoutFiltersHasNoGenre() {
+        String prompt = GeminiClient.createPrompt("yorgunum", null, List.of());
+
+        assertFalse(prompt.contains("türündeki"));
+        assertFalse(prompt.contains("tekrar önerme"));
     }
 
     @Test
