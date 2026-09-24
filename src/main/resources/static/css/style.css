@@ -114,11 +114,6 @@ textarea::placeholder {
     flex-wrap: wrap;
 }
 
-.hint {
-    font-size: 0.8rem;
-    color: var(--faint);
-}
-
 .buttons {
     display: flex;
     gap: 8px;
@@ -331,10 +326,6 @@ textarea::placeholder {
         width: 100%;
         max-width: 180px;
         margin: 0 auto;
-    }
-
-    .hint {
-        display: none;
     }
 
     .buttons {
