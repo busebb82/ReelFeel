@@ -10,10 +10,8 @@ const recentRow = document.getElementById("recent");
 const HISTORY_KEY = "reelfeel-son-aramalar";
 const MAX_HISTORY = 5;
 
-let selectedGenre = null; // null = tür fark etmez
-let shownTitles = [];     // "Başka Öner" denince bunlar tekrar önerilmesin
-
-// ---------- Türler ----------
+let selectedGenre = null;
+let shownTitles = [];
 
 async function loadGenres() {
     const response = await fetch("/api/genres");
@@ -38,8 +36,6 @@ function createGenreChip(label, value) {
     });
     return chip;
 }
-
-// ---------- Öneri isteği ----------
 
 async function recommend(isMore) {
     const mood = moodInput.value.trim();
@@ -70,7 +66,6 @@ async function recommend(isMore) {
         moreButton.hidden = false;
     } catch (error) {
         results.innerHTML = "";
-        // Sunucuya hiç ulaşılamazsa tarayıcı kendi İngilizce mesajını verir
         showError(error instanceof TypeError ? "Sunucuya bağlanılamadı." : error.message);
     } finally {
         setLoading(false);
@@ -97,8 +92,6 @@ function showError(message) {
     errorBox.textContent = message;
     errorBox.hidden = false;
 }
-
-// ---------- Sonuçlar ----------
 
 function showFilms(films) {
     results.innerHTML = "";
@@ -159,7 +152,6 @@ function createFilmCard(film) {
     return card;
 }
 
-// Metinleri innerHTML yerine textContent ile ekliyoruz, böylece gelen yazı HTML olarak çalışmaz
 function createElement(tag, className, text) {
     const element = document.createElement(tag);
     if (className) {
@@ -168,8 +160,6 @@ function createElement(tag, className, text) {
     element.textContent = text;
     return element;
 }
-
-// ---------- Son aramalar (tarayıcıda saklanır) ----------
 
 function getHistory() {
     try {
@@ -185,7 +175,6 @@ function saveToHistory(mood) {
     try {
         localStorage.setItem(HISTORY_KEY, JSON.stringify(history.slice(0, MAX_HISTORY)));
     } catch (e) {
-        // gizli sekmede kaydedilemeyebilir, sorun değil
     }
     showHistory();
 }
@@ -208,8 +197,6 @@ function showHistory() {
         recentRow.appendChild(chip);
     }
 }
-
-// ---------- Olaylar ----------
 
 form.addEventListener("submit", event => {
     event.preventDefault();

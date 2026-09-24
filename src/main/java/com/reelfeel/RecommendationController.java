@@ -22,7 +22,7 @@ public class RecommendationController {
     private static final int MAX_MOOD_LENGTH = 500;
 
     private final GeminiClient gemini = new GeminiClient();
-    private final TmdbClient tmdb = TmdbClient.fromEnvironment(); // anahtar yoksa null
+    private final TmdbClient tmdb = TmdbClient.fromEnvironment();
 
     @GetMapping("/api/genres")
     public List<String> genres() {
@@ -38,7 +38,6 @@ public class RecommendationController {
         if (mood.length() > MAX_MOOD_LENGTH) {
             throw new IllegalArgumentException("Ruh halini en fazla " + MAX_MOOD_LENGTH + " karakterle anlatabilirsin.");
         }
-        // Listede olmayan bir tür gelirse tür filtresi uygulanmaz
         String genre = request.genre() != null && GENRES.contains(request.genre()) ? request.genre() : null;
         List<String> excluded = request.excluded() == null ? List.of() : request.excluded();
 
@@ -49,7 +48,6 @@ public class RecommendationController {
                 try {
                     tmdb.addDetails(film);
                 } catch (IOException e) {
-                    // TMDB'de sorun olursa film yine gösterilir, sadece afişsiz olur
                     System.err.println(film.getTitle() + " için TMDB bilgisi alınamadı: " + e.getMessage());
                 }
             }
@@ -57,7 +55,6 @@ public class RecommendationController {
         return films;
     }
 
-    // Hata olursa sayfaya {"message": "..."} dönüyor, sayfa da bu mesajı gösteriyor
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<Map<String, String>> handleBadRequest(Exception e) {
         return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));

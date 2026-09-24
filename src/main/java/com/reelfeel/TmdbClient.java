@@ -25,32 +25,23 @@ public class TmdbClient {
         this.apiKey = apiKey;
     }
 
-    // TMDB isteğe bağlı: anahtar yoksa null döner, site afişsiz çalışır
     public static TmdbClient fromEnvironment() {
         String apiKey = System.getenv("TMDB_API_KEY");
         if (apiKey == null || apiKey.isBlank()) {
             return null;
         }
-        apiKey = GeminiClient.cleanKey(apiKey);
-        if (!apiKey.matches("[\\x21-\\x7E]+")) {
-            System.err.println("TMDB_API_KEY geçersiz görünüyor, afişler gösterilmeyecek. "
-                    + "TMDB'den aldığın gerçek anahtarı yazmalısın.");
-            return null;
-        }
-        return new TmdbClient(apiKey);
+        return new TmdbClient(apiKey.strip());
     }
 
     public void addDetails(Film film) throws IOException, InterruptedException {
         int id = applySearchResult(film, search(film.getTitle(), film.getYear()));
         if (id == 0) {
-            // Gemini yılı yanlış vermiş olabilir, yılsız bir daha dene
             id = applySearchResult(film, search(film.getTitle(), 0));
         }
         if (id == 0) {
             return;
         }
 
-        // Arama Türkçe yapıldığı için afiş de Türkçe gelebiliyor; orijinal (İngilizce) afişi ayrıca istiyoruz
         String englishPoster = chooseEnglishPoster(get("/movie/" + id + "/images", "include_image_language=en,null"));
         if (englishPoster != null) {
             film.setPosterUrl(IMAGE_URL + englishPoster);
@@ -68,8 +59,6 @@ public class TmdbClient {
     private String get(String path, String query) throws IOException, InterruptedException {
         String url = API_URL + path + "?" + query;
 
-        // TMDB iki çeşit anahtar veriyor: uzun "API Read Access Token" (eyJ ile başlar) başlıkta,
-        // kısa "API Key" ise adreste gönderilir. Hangisi kopyalanırsa çalışsın.
         HttpRequest.Builder request = HttpRequest.newBuilder();
         if (apiKey.startsWith("eyJ")) {
             request.header("Authorization", "Bearer " + apiKey);
@@ -85,8 +74,6 @@ public class TmdbClient {
         return response.body();
     }
 
-    // Arama sonucundaki ilk filmin bilgilerini Film nesnesine yazar ve filmin TMDB numarasını döner.
-    // Sonuç yoksa 0 döner.
     static int applySearchResult(Film film, String responseBody) {
         JsonArray results = JsonParser.parseString(responseBody).getAsJsonObject().getAsJsonArray("results");
         if (results == null || results.isEmpty()) {
@@ -95,7 +82,7 @@ public class TmdbClient {
 
         JsonObject movie = results.get(0).getAsJsonObject();
         film.setOverview(getString(movie, "overview"));
-        String posterPath = getString(movie, "poster_path"); // İngilizce afiş bulunamazsa bu kullanılır
+        String posterPath = getString(movie, "poster_path");
         if (posterPath != null) {
             film.setPosterUrl(IMAGE_URL + posterPath);
         }
@@ -105,7 +92,6 @@ public class TmdbClient {
         return movie.get("id").getAsInt();
     }
 
-    // Önce İngilizce afişi, yoksa üzerinde yazı olmayan afişi seçer. İkisi de yoksa null döner.
     static String chooseEnglishPoster(String imagesBody) {
         JsonArray posters = JsonParser.parseString(imagesBody).getAsJsonObject().getAsJsonArray("posters");
         if (posters == null) {

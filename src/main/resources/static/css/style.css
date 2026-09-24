@@ -32,7 +32,6 @@ textarea {
     color: var(--accent);
 }
 
-/* Üst menü */
 .header {
     padding: 20px 32px;
 }
@@ -53,7 +52,6 @@ textarea {
     padding: 0 20px 60px;
 }
 
-/* Giriş bölümü */
 .hero {
     text-align: center;
     padding: 48px 0 24px;
@@ -127,7 +125,6 @@ textarea::placeholder {
     margin-left: auto;
 }
 
-/* Butonlar */
 .btn {
     border-radius: 10px;
     padding: 10px 22px;
@@ -161,7 +158,6 @@ textarea::placeholder {
     background: var(--border);
 }
 
-/* Etiketler (tür, örnekler, son aramalar) */
 .chip {
     border: 1px solid var(--border);
     background: transparent;
@@ -202,7 +198,6 @@ textarea::placeholder {
     color: var(--faint);
 }
 
-/* Hata mesajı */
 .error {
     margin: 16px 0;
     padding: 12px 16px;
@@ -212,7 +207,6 @@ textarea::placeholder {
     color: #fca5a5;
 }
 
-/* Sonuçlar */
 .results {
     display: flex;
     flex-direction: column;
@@ -227,7 +221,7 @@ textarea::placeholder {
 
 .film-card {
     display: flex;
-    align-items: flex-start; /* afiş, uzun yazılarda kartla birlikte uzamasın */
+    align-items: flex-start;
     gap: 18px;
     padding: 16px;
     background: var(--surface);
@@ -285,7 +279,6 @@ textarea::placeholder {
 .overview {
     color: var(--muted);
     font-size: 0.92rem;
-    /* Uzun özetler 3 satırda kesilir, tıklanınca tamamı açılır */
     display: -webkit-box;
     -webkit-line-clamp: 3;
     -webkit-box-orient: vertical;
@@ -297,7 +290,6 @@ textarea::placeholder {
     display: block;
 }
 
-/* Yüklenirken gösterilen boş kartlar */
 .skeleton {
     height: 170px;
     border-radius: var(--radius);
@@ -326,7 +318,6 @@ textarea::placeholder {
     color: var(--muted);
 }
 
-/* Telefon ekranı */
 @media (max-width: 600px) {
     .header {
         padding: 16px 20px;

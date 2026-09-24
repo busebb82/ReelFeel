@@ -19,47 +19,20 @@ public class GeminiClient {
             "https://generativelanguage.googleapis.com/v1beta/models/%s:generateContent";
 
     private static final String MODEL = "gemini-flash-latest";
-    // Ücretsiz model yoğun saatlerde 503 verebiliyor, o zaman daha hafif olan bu modeli deniyoruz
     private static final String BACKUP_MODEL = "gemini-flash-lite-latest";
 
     private final HttpClient httpClient = HttpClient.newHttpClient();
     private final String apiKey;
 
     public GeminiClient() {
-        this(System.getenv("GEMINI_API_KEY"));
+        String key = System.getenv("GEMINI_API_KEY");
+        apiKey = key == null ? null : key.strip();
     }
 
-    GeminiClient(String apiKey) {
-        this.apiKey = cleanKey(apiKey);
-    }
-
-    // Anahtar yanlışlıkla tırnak içinde ya da "export GEMINI_API_KEY=..." şeklinde kopyalanırsa temizler
-    static String cleanKey(String key) {
-        if (key == null) {
-            return null;
-        }
-        String cleaned = key.strip();
-        cleaned = cleaned.replaceFirst("^export\\s+", "");
-        cleaned = cleaned.replaceFirst("^[A-Z_]+=", "");
-        return cleaned.replaceAll("^[\"']+|[\"']+$", "").strip();
-    }
-
-    /**
-     * @param genre          sadece bu türden film istenir, null ise tür fark etmez
-     * @param excludedTitles daha önce gösterilen filmler, tekrar önerilmesin diye
-     */
     public List<Film> recommend(String mood, String genre, List<String> excludedTitles)
             throws IOException, InterruptedException {
         if (apiKey == null || apiKey.isBlank()) {
-            throw new IllegalStateException(
-                    "Sunucuda GEMINI_API_KEY tanımlı değil. README'deki kurulum adımlarına bak.");
-        }
-        // Boşluk ya da Türkçe karakter HTTP başlığını bozar; anahtarın doğru olup olmadığına Gemini karar verir
-        if (!apiKey.matches("[\\x21-\\x7E]+")) {
-            // Anahtarın kendisini değil, sadece ne kadar uzun olduğunu loglara yazıyoruz
-            System.err.println("GEMINI_API_KEY içinde boşluk veya Türkçe/özel karakter var. Uzunluğu: " + apiKey.length());
-            throw new IllegalStateException("GEMINI_API_KEY içinde boşluk ya da Türkçe karakter var. "
-                    + "Sadece Google AI Studio'dan kopyaladığın anahtarı yaz.");
+            throw new IllegalStateException("Sunucuda GEMINI_API_KEY tanımlı değil.");
         }
         String body = createRequestBody(createPrompt(mood, genre, excludedTitles));
 
@@ -118,7 +91,6 @@ public class GeminiClient {
         JsonArray contents = new JsonArray();
         contents.add(content);
 
-        // Gemini'nin düz metin yerine JSON döndürmesini istiyoruz
         JsonObject config = new JsonObject();
         config.addProperty("responseMimeType", "application/json");
 
@@ -128,7 +100,6 @@ public class GeminiClient {
         return body.toString();
     }
 
-    // Cevaptaki film listesi candidates[0].content.parts[0].text içinde JSON metni olarak gelir
     static List<Film> parseFilms(String responseBody) throws IOException {
         try {
             JsonObject json = JsonParser.parseString(responseBody).getAsJsonObject();

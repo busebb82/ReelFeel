@@ -2,12 +2,10 @@ package com.reelfeel;
 
 public class Film {
 
-    // Gemini'den gelen bilgiler
     private String title;
     private int year;
     private String reason;
 
-    // TMDB'den gelen bilgiler (TMDB anahtarı yoksa boş kalır)
     private String overview;
     private double rating;
     private String posterUrl;
