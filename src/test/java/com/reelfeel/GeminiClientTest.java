@@ -59,7 +59,15 @@ class GeminiClientTest {
         IllegalStateException e = assertThrows(IllegalStateException.class,
                 () -> client.recommend("mutluyum", null, List.of()));
 
-        assertTrue(e.getMessage().contains("geçersiz"));
+        assertTrue(e.getMessage().contains("Türkçe karakter"));
+    }
+
+    @Test
+    void quotesAndSpacesAroundKeyAreRemoved() {
+        assertEquals("AIzaAbc123", GeminiClient.cleanKey("  \"AIzaAbc123\"\n"));
+        assertEquals("AIzaAbc123", GeminiClient.cleanKey("'AIzaAbc123'"));
+        assertEquals("AIzaAbc123", GeminiClient.cleanKey("export GEMINI_API_KEY=\"AIzaAbc123\""));
+        assertEquals("AIzaAbc123", GeminiClient.cleanKey("GEMINI_API_KEY=AIzaAbc123"));
     }
 
     @Test

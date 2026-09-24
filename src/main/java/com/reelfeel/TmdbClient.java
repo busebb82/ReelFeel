@@ -31,8 +31,8 @@ public class TmdbClient {
         if (apiKey == null || apiKey.isBlank()) {
             return null;
         }
-        apiKey = apiKey.trim();
-        if (!apiKey.matches("[A-Za-z0-9._-]+")) {
+        apiKey = GeminiClient.cleanKey(apiKey);
+        if (!apiKey.matches("[\\x21-\\x7E]+")) {
             System.err.println("TMDB_API_KEY geçersiz görünüyor, afişler gösterilmeyecek. "
                     + "TMDB'den aldığın gerçek anahtarı yazmalısın.");
             return null;

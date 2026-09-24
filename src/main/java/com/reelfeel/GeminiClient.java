@@ -16,7 +16,11 @@ import java.util.List;
 public class GeminiClient {
 
     private static final String API_URL =
-            "https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent";
+            "https://generativelanguage.googleapis.com/v1beta/models/%s:generateContent";
+
+    private static final String MODEL = "gemini-flash-latest";
+    // Ücretsiz model yoğun saatlerde 503 verebiliyor, o zaman daha hafif olan bu modeli deniyoruz
+    private static final String BACKUP_MODEL = "gemini-flash-lite-latest";
 
     private final HttpClient httpClient = HttpClient.newHttpClient();
     private final String apiKey;
@@ -26,7 +30,18 @@ public class GeminiClient {
     }
 
     GeminiClient(String apiKey) {
-        this.apiKey = apiKey == null ? null : apiKey.strip();
+        this.apiKey = cleanKey(apiKey);
+    }
+
+    // Anahtar yanlışlıkla tırnak içinde ya da "export GEMINI_API_KEY=..." şeklinde kopyalanırsa temizler
+    static String cleanKey(String key) {
+        if (key == null) {
+            return null;
+        }
+        String cleaned = key.strip();
+        cleaned = cleaned.replaceFirst("^export\\s+", "");
+        cleaned = cleaned.replaceFirst("^[A-Z_]+=", "");
+        return cleaned.replaceAll("^[\"']+|[\"']+$", "").strip();
     }
 
     /**
@@ -39,23 +54,22 @@ public class GeminiClient {
             throw new IllegalStateException(
                     "Sunucuda GEMINI_API_KEY tanımlı değil. README'deki kurulum adımlarına bak.");
         }
-        // Gerçek anahtarlar sadece harf, rakam, - ve _ içerir
-        if (!apiKey.matches("[A-Za-z0-9_-]+")) {
-            throw new IllegalStateException("GEMINI_API_KEY geçersiz görünüyor. README'deki örnek yazıyı değil, "
-                    + "Google AI Studio'dan aldığın gerçek anahtarı yazmalısın.");
+        // Boşluk ya da Türkçe karakter HTTP başlığını bozar; anahtarın doğru olup olmadığına Gemini karar verir
+        if (!apiKey.matches("[\\x21-\\x7E]+")) {
+            // Anahtarın kendisini değil, sadece ne kadar uzun olduğunu loglara yazıyoruz
+            System.err.println("GEMINI_API_KEY içinde boşluk veya Türkçe/özel karakter var. Uzunluğu: " + apiKey.length());
+            throw new IllegalStateException("GEMINI_API_KEY içinde boşluk ya da Türkçe karakter var. "
+                    + "Sadece Google AI Studio'dan kopyaladığın anahtarı yaz.");
         }
-        String prompt = createPrompt(mood, genre, excludedTitles);
-        HttpRequest request = HttpRequest.newBuilder(URI.create(API_URL))
-                .header("Content-Type", "application/json")
-                .header("x-goog-api-key", apiKey)
-                .POST(HttpRequest.BodyPublishers.ofString(createRequestBody(prompt)))
-                .build();
+        String body = createRequestBody(createPrompt(mood, genre, excludedTitles));
 
-        HttpResponse<String> response;
-        try {
-            response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-        } catch (IOException e) {
-            throw new IOException("Gemini'ye bağlanılamadı. İnternet bağlantını kontrol et.", e);
+        HttpResponse<String> response = send(MODEL, body);
+        if (response.statusCode() >= 500) {
+            System.err.println(MODEL + " yoğun (HTTP " + response.statusCode() + "), " + BACKUP_MODEL + " deneniyor");
+            HttpResponse<String> backup = send(BACKUP_MODEL, body);
+            if (backup.statusCode() == 200) {
+                response = backup;
+            }
         }
 
         if (response.statusCode() != 200) {
@@ -63,6 +77,19 @@ public class GeminiClient {
             throw new IOException(errorMessage(response.statusCode()));
         }
         return parseFilms(response.body());
+    }
+
+    private HttpResponse<String> send(String model, String body) throws IOException, InterruptedException {
+        HttpRequest request = HttpRequest.newBuilder(URI.create(API_URL.formatted(model)))
+                .header("Content-Type", "application/json")
+                .header("x-goog-api-key", apiKey)
+                .POST(HttpRequest.BodyPublishers.ofString(body))
+                .build();
+        try {
+            return httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+        } catch (IOException e) {
+            throw new IOException("Gemini'ye bağlanılamadı. İnternet bağlantını kontrol et.", e);
+        }
     }
 
     static String createPrompt(String mood, String genre, List<String> excludedTitles) {
