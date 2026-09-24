@@ -55,6 +55,17 @@ Tarayıcı ──POST /api/recommendations──▶ Spring Boot sunucusu ──�
    mvn spring-boot:run
    ```
 
+## İnternete koyma (Render)
+
+Proje [Render](https://render.com) üzerinde ücretsiz yayınlanabilir. Gerekli ayarlar `Dockerfile` ve `render.yaml` dosyalarında hazır.
+
+1. Render'a GitHub hesabınla giriş yap.
+2. **New → Blueprint** seç ve bu repoyu bağla.
+3. Sorulduğunda `GEMINI_API_KEY` ve `TMDB_API_KEY` değerlerini gir.
+4. **Deploy**'a bas. Birkaç dakika sonra site `https://reelfeel-xxxx.onrender.com` gibi bir adreste açılır.
+
+Not: Ücretsiz planda site 15 dakika kullanılmazsa uyku moduna geçer, sonraki ilk açılış yaklaşık bir dakika sürebilir.
+
 ## Testler
 
 ```bash

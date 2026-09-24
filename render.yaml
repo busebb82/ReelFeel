@@ -1,0 +1,13 @@
+# Render.com ayarları: "New > Blueprint" ile bu dosya okunur
+services:
+  - type: web
+    name: reelfeel
+    runtime: docker
+    plan: free
+    healthCheckPath: /api/genres
+    envVars:
+      # Değerler Render panelinde girilir, burada tutulmaz
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: TMDB_API_KEY
+        sync: false
