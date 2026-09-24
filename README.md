@@ -1,18 +1,32 @@
+<p align="center"><img src="src/main/resources/static/img/logo.svg" width="80" alt="ReelFeel logosu"></p>
+
 # ReelFeel
 
-Ruh haline göre film öneren bir Java masaüstü uygulaması.
+Ruh haline göre film öneren bir web sitesi.
 
-Nasıl hissettiğini bir cümleyle yazıyorsun ("Bugün biraz yorgunum, kafamı dağıtacak bir şey istiyorum" gibi). Uygulama bu metni Google Gemini'ye gönderiyor ve ruh haline uygun 5 film ile her birinin neden uygun olduğunu gösteriyor. TMDB anahtarı tanımlıysa filmlerin afişi, puanı ve konusu da görünüyor.
+Nasıl hissettiğini bir cümleyle yazıyorsun ("Bugün biraz yorgunum, kafamı dağıtacak bir şey istiyorum" gibi). Site bu metni Google Gemini'ye gönderiyor ve ruh haline uygun 5 film ile her birinin neden uygun olduğunu gösteriyor. TMDB anahtarı tanımlıysa filmlerin afişi, puanı ve konusu da görünüyor.
 
 Diğer özellikler:
 
 - **Tür filtresi:** Sadece komedi, dram, korku gibi belirli bir türden film istenebilir.
 - **Başka Öner:** Aynı ruh hali için, daha önce gösterilenlerden farklı 5 film daha getirir.
-- **Son aramalar:** Son 5 arama bilgisayarda saklanır (`~/.reelfeel_gecmis.txt`), listeden seçince tekrar yazmaya gerek kalmaz.
+- **Son aramalar:** Son 5 arama tarayıcıda saklanır, tıklayınca tekrar yazmaya gerek kalmaz.
+- **Örnek ruh halleri:** Ne yazacağını bilemeyenler için hazır örnekler.
+- Telefonda da düzgün görünür.
+
+## Nasıl çalışıyor?
+
+Sunucu Java (Spring Boot) ile yazıldı, sayfa ise düz HTML, CSS ve JavaScript. API anahtarları sadece sunucuda duruyor, tarayıcıya hiç gönderilmiyor.
+
+```
+Tarayıcı ──POST /api/recommendations──▶ Spring Boot sunucusu ──▶ Gemini (film seçimi)
+                                                            └──▶ TMDB (afiş, puan, konu)
+```
 
 ## Kullanılanlar
 
-- Java 21 ve Swing
+- Java 21, Spring Boot
+- HTML, CSS, JavaScript
 - Google Gemini API
 - TMDB API (isteğe bağlı)
 - Gson
@@ -22,23 +36,23 @@ Diğer özellikler:
 
 1. [Google AI Studio](https://aistudio.google.com/apikey)'dan ücretsiz bir Gemini API anahtarı al.
 2. Afişleri de görmek istersen [TMDB](https://www.themoviedb.org/settings/api)'de hesap açıp bir anahtar al. Kısa **API Key** ya da uzun **API Read Access Token**, ikisi de çalışır.
-3. Anahtarları ortam değişkeni olarak tanımla:
+3. Anahtarları ortam değişkeni olarak tanımla. Tırnakların içine kendi anahtarını yapıştır:
 
    macOS / Linux:
    ```bash
-   export GEMINI_API_KEY="gemini-anahtarın"
-   export TMDB_API_KEY="tmdb-anahtarın"
+   export GEMINI_API_KEY="BURAYA_GEMINI_ANAHTARINI_YAPISTIR"
+   export TMDB_API_KEY="BURAYA_TMDB_ANAHTARINI_YAPISTIR"
    ```
 
    Windows (PowerShell):
    ```powershell
-   $env:GEMINI_API_KEY="gemini-anahtarın"
-   $env:TMDB_API_KEY="tmdb-anahtarın"
+   $env:GEMINI_API_KEY="BURAYA_GEMINI_ANAHTARINI_YAPISTIR"
+   $env:TMDB_API_KEY="BURAYA_TMDB_ANAHTARINI_YAPISTIR"
    ```
 
-4. Uygulamayı başlat:
+4. Sunucuyu başlat ve tarayıcıda **http://localhost:8080** adresini aç:
    ```bash
-   mvn compile exec:java
+   mvn spring-boot:run
    ```
 
 ## Testler
@@ -51,10 +65,12 @@ mvn test
 
 | Dosya | Görevi |
 |---|---|
-| `Main.java` | Uygulamayı başlatır |
-| `MainWindow.java` | Ana pencere, butona basınca önerileri getirir |
-| `FilmCard.java` | Bir filmi afişi ve açıklamasıyla gösterir |
-| `Film.java` | Film bilgilerini tutar |
+| `ReelFeelApplication.java` | Sunucuyu başlatır |
+| `RecommendationController.java` | `/api/genres` ve `/api/recommendations` adreslerini karşılar |
 | `GeminiClient.java` | Gemini'den film önerilerini alır |
 | `TmdbClient.java` | TMDB'den afiş, puan ve konu bilgisini alır |
-| `SearchHistory.java` | Son aramaları dosyaya kaydeder ve okur |
+| `Film.java`, `RecommendationRequest.java` | Veri sınıfları |
+| `static/index.html` | Sayfa |
+| `static/css/style.css` | Tasarım |
+| `static/js/app.js` | Sayfadaki butonlar, istekler ve film kartları |
+| `static/img/logo.svg` | Logo |

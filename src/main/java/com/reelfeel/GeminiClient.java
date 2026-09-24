@@ -22,7 +22,11 @@ public class GeminiClient {
     private final String apiKey;
 
     public GeminiClient() {
-        apiKey = System.getenv("GEMINI_API_KEY");
+        this(System.getenv("GEMINI_API_KEY"));
+    }
+
+    GeminiClient(String apiKey) {
+        this.apiKey = apiKey == null ? null : apiKey.strip();
     }
 
     /**
@@ -34,6 +38,11 @@ public class GeminiClient {
         if (apiKey == null || apiKey.isBlank()) {
             throw new IllegalStateException(
                     "Sunucuda GEMINI_API_KEY tanımlı değil. README'deki kurulum adımlarına bak.");
+        }
+        // Gerçek anahtarlar sadece harf, rakam, - ve _ içerir
+        if (!apiKey.matches("[A-Za-z0-9_-]+")) {
+            throw new IllegalStateException("GEMINI_API_KEY geçersiz görünüyor. README'deki örnek yazıyı değil, "
+                    + "Google AI Studio'dan aldığın gerçek anahtarı yazmalısın.");
         }
         String prompt = createPrompt(mood, genre, excludedTitles);
         HttpRequest request = HttpRequest.newBuilder(URI.create(API_URL))

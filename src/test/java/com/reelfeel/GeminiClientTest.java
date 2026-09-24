@@ -53,6 +53,16 @@ class GeminiClientTest {
     }
 
     @Test
+    void exampleKeyFromReadmeIsRejected() {
+        GeminiClient client = new GeminiClient("gemini-anahtarın");
+
+        IllegalStateException e = assertThrows(IllegalStateException.class,
+                () -> client.recommend("mutluyum", null, List.of()));
+
+        assertTrue(e.getMessage().contains("geçersiz"));
+    }
+
+    @Test
     void rateLimitHasItsOwnMessage() {
         assertTrue(GeminiClient.errorMessage(429).contains("limit"));
     }

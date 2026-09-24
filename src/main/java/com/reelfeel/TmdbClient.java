@@ -31,7 +31,13 @@ public class TmdbClient {
         if (apiKey == null || apiKey.isBlank()) {
             return null;
         }
-        return new TmdbClient(apiKey.trim());
+        apiKey = apiKey.trim();
+        if (!apiKey.matches("[A-Za-z0-9._-]+")) {
+            System.err.println("TMDB_API_KEY geçersiz görünüyor, afişler gösterilmeyecek. "
+                    + "TMDB'den aldığın gerçek anahtarı yazmalısın.");
+            return null;
+        }
+        return new TmdbClient(apiKey);
     }
 
     public void addDetails(Film film) throws IOException, InterruptedException {

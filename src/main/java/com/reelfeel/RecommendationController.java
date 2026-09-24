@@ -39,7 +39,7 @@ public class RecommendationController {
             throw new IllegalArgumentException("Ruh halini en fazla " + MAX_MOOD_LENGTH + " karakterle anlatabilirsin.");
         }
         // Listede olmayan bir tür gelirse tür filtresi uygulanmaz
-        String genre = GENRES.contains(request.genre()) ? request.genre() : null;
+        String genre = request.genre() != null && GENRES.contains(request.genre()) ? request.genre() : null;
         List<String> excluded = request.excluded() == null ? List.of() : request.excluded();
 
         List<Film> films = gemini.recommend(mood, genre, excluded);

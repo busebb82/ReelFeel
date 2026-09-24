@@ -24,6 +24,15 @@ class RecommendationControllerTest {
     }
 
     @Test
+    void requestWithoutGenreReachesGemini() {
+        // Testlerde GEMINI_API_KEY yok; tür boşken hata vermeden anahtar kontrolüne kadar gelmeli
+        IllegalStateException e = assertThrows(IllegalStateException.class,
+                () -> controller.recommend(new RecommendationRequest("mutluyum", null, null)));
+
+        assertTrue(e.getMessage().contains("GEMINI_API_KEY"));
+    }
+
+    @Test
     void genresAreListed() {
         assertTrue(controller.genres().contains("Komedi"));
     }
