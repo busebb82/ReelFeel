@@ -15,7 +15,7 @@ import java.nio.charset.StandardCharsets;
 
 public class TmdbClient {
 
-    private static final String SEARCH_URL = "https://api.themoviedb.org/3/search/movie";
+    private static final String API_URL = "https://api.themoviedb.org/3";
     private static final String IMAGE_URL = "https://image.tmdb.org/t/p/w342";
 
     private final HttpClient httpClient = HttpClient.newHttpClient();
@@ -41,20 +41,32 @@ public class TmdbClient {
     }
 
     public void addDetails(Film film) throws IOException, InterruptedException {
-        String body = search(film.getTitle(), film.getYear());
-        if (!applySearchResult(film, body)) {
+        int id = applySearchResult(film, search(film.getTitle(), film.getYear()));
+        if (id == 0) {
             // Gemini yılı yanlış vermiş olabilir, yılsız bir daha dene
-            applySearchResult(film, search(film.getTitle(), 0));
+            id = applySearchResult(film, search(film.getTitle(), 0));
+        }
+        if (id == 0) {
+            return;
+        }
+
+        // Arama Türkçe yapıldığı için afiş de Türkçe gelebiliyor; orijinal (İngilizce) afişi ayrıca istiyoruz
+        String englishPoster = chooseEnglishPoster(get("/movie/" + id + "/images", "include_image_language=en,null"));
+        if (englishPoster != null) {
+            film.setPosterUrl(IMAGE_URL + englishPoster);
         }
     }
 
     private String search(String title, int year) throws IOException, InterruptedException {
-        String url = SEARCH_URL
-                + "?language=tr-TR"
-                + "&query=" + URLEncoder.encode(title, StandardCharsets.UTF_8);
+        String query = "language=tr-TR&query=" + URLEncoder.encode(title, StandardCharsets.UTF_8);
         if (year > 0) {
-            url += "&year=" + year;
+            query += "&year=" + year;
         }
+        return get("/search/movie", query);
+    }
+
+    private String get(String path, String query) throws IOException, InterruptedException {
+        String url = API_URL + path + "?" + query;
 
         // TMDB iki çeşit anahtar veriyor: uzun "API Read Access Token" (eyJ ile başlar) başlıkta,
         // kısa "API Key" ise adreste gönderilir. Hangisi kopyalanırsa çalışsın.
@@ -73,23 +85,44 @@ public class TmdbClient {
         return response.body();
     }
 
-    // Arama sonucundaki ilk filmin bilgilerini Film nesnesine yazar. Sonuç yoksa false döner.
-    static boolean applySearchResult(Film film, String responseBody) {
+    // Arama sonucundaki ilk filmin bilgilerini Film nesnesine yazar ve filmin TMDB numarasını döner.
+    // Sonuç yoksa 0 döner.
+    static int applySearchResult(Film film, String responseBody) {
         JsonArray results = JsonParser.parseString(responseBody).getAsJsonObject().getAsJsonArray("results");
         if (results == null || results.isEmpty()) {
-            return false;
+            return 0;
         }
 
         JsonObject movie = results.get(0).getAsJsonObject();
         film.setOverview(getString(movie, "overview"));
-        String posterPath = getString(movie, "poster_path");
+        String posterPath = getString(movie, "poster_path"); // İngilizce afiş bulunamazsa bu kullanılır
         if (posterPath != null) {
             film.setPosterUrl(IMAGE_URL + posterPath);
         }
         if (movie.has("vote_average")) {
             film.setRating(movie.get("vote_average").getAsDouble());
         }
-        return true;
+        return movie.get("id").getAsInt();
+    }
+
+    // Önce İngilizce afişi, yoksa üzerinde yazı olmayan afişi seçer. İkisi de yoksa null döner.
+    static String chooseEnglishPoster(String imagesBody) {
+        JsonArray posters = JsonParser.parseString(imagesBody).getAsJsonObject().getAsJsonArray("posters");
+        if (posters == null) {
+            return null;
+        }
+        String textless = null;
+        for (JsonElement element : posters) {
+            JsonObject poster = element.getAsJsonObject();
+            String language = getString(poster, "iso_639_1");
+            if ("en".equals(language)) {
+                return getString(poster, "file_path");
+            }
+            if (language == null && textless == null) {
+                textless = getString(poster, "file_path");
+            }
+        }
+        return textless;
     }
 
     private static String getString(JsonObject json, String key) {

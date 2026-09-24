@@ -227,6 +227,7 @@ textarea::placeholder {
 
 .film-card {
     display: flex;
+    align-items: flex-start; /* afiş, uzun yazılarda kartla birlikte uzamasın */
     gap: 18px;
     padding: 16px;
     background: var(--surface);
@@ -238,6 +239,7 @@ textarea::placeholder {
 .poster {
     flex-shrink: 0;
     width: 110px;
+    height: auto;
     aspect-ratio: 2 / 3;
     border-radius: 8px;
     object-fit: cover;
@@ -283,6 +285,16 @@ textarea::placeholder {
 .overview {
     color: var(--muted);
     font-size: 0.92rem;
+    /* Uzun özetler 3 satırda kesilir, tıklanınca tamamı açılır */
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    cursor: pointer;
+}
+
+.overview.expanded {
+    display: block;
 }
 
 /* Yüklenirken gösterilen boş kartlar */

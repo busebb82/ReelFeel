@@ -149,7 +149,10 @@ function createFilmCard(film) {
     info.appendChild(reason);
 
     if (film.overview) {
-        info.appendChild(createElement("p", "overview", film.overview));
+        const overview = createElement("p", "overview", film.overview);
+        overview.title = "Tamamını görmek için tıkla";
+        overview.addEventListener("click", () => overview.classList.toggle("expanded"));
+        info.appendChild(overview);
     }
 
     card.appendChild(info);
