@@ -23,10 +23,6 @@ public class GeminiClient {
 
     public GeminiClient() {
         apiKey = System.getenv("GEMINI_API_KEY");
-        if (apiKey == null || apiKey.isBlank()) {
-            throw new IllegalStateException(
-                    "GEMINI_API_KEY ortam değişkeni bulunamadı. README'deki kurulum adımlarına bak.");
-        }
     }
 
     /**
@@ -35,6 +31,10 @@ public class GeminiClient {
      */
     public List<Film> recommend(String mood, String genre, List<String> excludedTitles)
             throws IOException, InterruptedException {
+        if (apiKey == null || apiKey.isBlank()) {
+            throw new IllegalStateException(
+                    "Sunucuda GEMINI_API_KEY tanımlı değil. README'deki kurulum adımlarına bak.");
+        }
         String prompt = createPrompt(mood, genre, excludedTitles);
         HttpRequest request = HttpRequest.newBuilder(URI.create(API_URL))
                 .header("Content-Type", "application/json")

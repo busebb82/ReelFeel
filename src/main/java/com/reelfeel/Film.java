@@ -1,7 +1,5 @@
 package com.reelfeel;
 
-import javax.swing.ImageIcon;
-
 public class Film {
 
     // Gemini'den gelen bilgiler
@@ -12,8 +10,7 @@ public class Film {
     // TMDB'den gelen bilgiler (TMDB anahtarı yoksa boş kalır)
     private String overview;
     private double rating;
-    private String posterPath;
-    private transient ImageIcon poster; // transient: Gson bu alanı JSON'da aramasın
+    private String posterUrl;
 
     public Film() {
     }
@@ -52,19 +49,11 @@ public class Film {
         this.rating = rating;
     }
 
-    public String getPosterPath() {
-        return posterPath;
+    public String getPosterUrl() {
+        return posterUrl;
     }
 
-    public void setPosterPath(String posterPath) {
-        this.posterPath = posterPath;
-    }
-
-    public ImageIcon getPoster() {
-        return poster;
-    }
-
-    public void setPoster(ImageIcon poster) {
-        this.poster = poster;
+    public void setPosterUrl(String posterUrl) {
+        this.posterUrl = posterUrl;
     }
 }

@@ -5,7 +5,6 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
-import javax.swing.ImageIcon;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URLEncoder;
@@ -17,7 +16,7 @@ import java.nio.charset.StandardCharsets;
 public class TmdbClient {
 
     private static final String SEARCH_URL = "https://api.themoviedb.org/3/search/movie";
-    private static final String IMAGE_URL = "https://image.tmdb.org/t/p/w154";
+    private static final String IMAGE_URL = "https://image.tmdb.org/t/p/w342";
 
     private final HttpClient httpClient = HttpClient.newHttpClient();
     private final String apiKey;
@@ -26,7 +25,7 @@ public class TmdbClient {
         this.apiKey = apiKey;
     }
 
-    // TMDB isteğe bağlı: anahtar yoksa null döner, uygulama afişsiz çalışır
+    // TMDB isteğe bağlı: anahtar yoksa null döner, site afişsiz çalışır
     public static TmdbClient fromEnvironment() {
         String apiKey = System.getenv("TMDB_API_KEY");
         if (apiKey == null || apiKey.isBlank()) {
@@ -40,10 +39,6 @@ public class TmdbClient {
         if (!applySearchResult(film, body)) {
             // Gemini yılı yanlış vermiş olabilir, yılsız bir daha dene
             applySearchResult(film, search(film.getTitle(), 0));
-        }
-
-        if (film.getPosterPath() != null) {
-            film.setPoster(new ImageIcon(URI.create(IMAGE_URL + film.getPosterPath()).toURL()));
         }
     }
 
@@ -81,7 +76,10 @@ public class TmdbClient {
 
         JsonObject movie = results.get(0).getAsJsonObject();
         film.setOverview(getString(movie, "overview"));
-        film.setPosterPath(getString(movie, "poster_path"));
+        String posterPath = getString(movie, "poster_path");
+        if (posterPath != null) {
+            film.setPosterUrl(IMAGE_URL + posterPath);
+        }
         if (movie.has("vote_average")) {
             film.setRating(movie.get("vote_average").getAsDouble());
         }

@@ -21,7 +21,7 @@ class TmdbClientTest {
 
         assertTrue(TmdbClient.applySearchResult(film, response));
         assertEquals("Paris'te yaşayan utangaç bir garson...", film.getOverview());
-        assertEquals("/amelie.jpg", film.getPosterPath());
+        assertEquals("https://image.tmdb.org/t/p/w342/amelie.jpg", film.getPosterUrl());
         assertEquals(7.9, film.getRating());
     }
 
@@ -31,7 +31,7 @@ class TmdbClientTest {
 
         assertFalse(TmdbClient.applySearchResult(film, "{\"results\": []}"));
         assertNull(film.getOverview());
-        assertNull(film.getPosterPath());
+        assertNull(film.getPosterUrl());
     }
 
     @Test
@@ -41,6 +41,6 @@ class TmdbClientTest {
         TmdbClient.applySearchResult(film, "{\"results\": [{\"overview\": \"Özet\", \"poster_path\": null}]}");
 
         assertEquals("Özet", film.getOverview());
-        assertNull(film.getPosterPath());
+        assertNull(film.getPosterUrl());
     }
 }
