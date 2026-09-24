@@ -12,6 +12,7 @@ import javax.swing.JTextArea;
 import javax.swing.SwingWorker;
 import java.awt.BorderLayout;
 import java.awt.Font;
+import java.io.IOException;
 import java.util.List;
 
 public class MainWindow extends JFrame {
@@ -71,7 +72,20 @@ public class MainWindow extends JFrame {
         new SwingWorker<List<Film>, Void>() {
             @Override
             protected List<Film> doInBackground() throws Exception {
-                return new GeminiClient().recommend(mood);
+                List<Film> films = new GeminiClient().recommend(mood);
+
+                TmdbClient tmdb = TmdbClient.fromEnvironment();
+                if (tmdb != null) {
+                    for (Film film : films) {
+                        try {
+                            tmdb.addDetails(film);
+                        } catch (IOException e) {
+                            // TMDB'de sorun olursa film yine gösterilir, sadece afişsiz olur
+                            System.err.println(film.getTitle() + " için TMDB bilgisi alınamadı: " + e.getMessage());
+                        }
+                    }
+                }
+                return films;
             }
 
             @Override
