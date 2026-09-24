@@ -9,8 +9,10 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
+import javax.swing.SwingWorker;
 import java.awt.BorderLayout;
 import java.awt.Font;
+import java.util.List;
 
 public class MainWindow extends JFrame {
 
@@ -61,6 +63,38 @@ public class MainWindow extends JFrame {
             return;
         }
 
-        JOptionPane.showMessageDialog(this, "Öneri özelliği henüz hazır değil.");
+        recommendButton.setEnabled(false);
+        statusLabel.setText("Filmler aranıyor...");
+        showFilms(List.of());
+
+        // İstekler birkaç saniye sürebilir, arayüz donmasın diye arka planda çalıştırıyoruz
+        new SwingWorker<List<Film>, Void>() {
+            @Override
+            protected List<Film> doInBackground() throws Exception {
+                return new GeminiClient().recommend(mood);
+            }
+
+            @Override
+            protected void done() {
+                recommendButton.setEnabled(true);
+                statusLabel.setText(" ");
+                try {
+                    showFilms(get());
+                } catch (Exception e) {
+                    Throwable cause = e.getCause() != null ? e.getCause() : e;
+                    JOptionPane.showMessageDialog(MainWindow.this, cause.getMessage(),
+                            "Hata", JOptionPane.ERROR_MESSAGE);
+                }
+            }
+        }.execute();
+    }
+
+    private void showFilms(List<Film> films) {
+        resultsPanel.removeAll();
+        for (Film film : films) {
+            resultsPanel.add(new FilmCard(film));
+        }
+        resultsPanel.revalidate();
+        resultsPanel.repaint();
     }
 }
