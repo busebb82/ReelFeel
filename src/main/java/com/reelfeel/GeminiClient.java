@@ -61,7 +61,7 @@ public class GeminiClient {
         try {
             return httpClient.send(request, HttpResponse.BodyHandlers.ofString());
         } catch (IOException e) {
-            throw new IOException("Gemini'ye bağlanılamadı. İnternet bağlantını kontrol et.", e);
+            throw new IOException("Gemini'ye bağlanılamadı. Biraz sonra tekrar dene.", e);
         }
     }
 

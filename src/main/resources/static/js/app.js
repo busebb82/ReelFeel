@@ -175,6 +175,7 @@ function saveToHistory(mood) {
     try {
         localStorage.setItem(HISTORY_KEY, JSON.stringify(history.slice(0, MAX_HISTORY)));
     } catch (e) {
+        console.warn("Arama geçmişi kaydedilemedi", e);
     }
     showHistory();
 }
